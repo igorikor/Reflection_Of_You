@@ -2,6 +2,8 @@ from tkinter import *
 from PIL import Image, ImageTk
 import datetime as dt
 import requests
+from feedparser import *
+from threading import Thread
 
 img = ""
 
@@ -17,7 +19,23 @@ weather_icon_lib = {
 	'partly-cloudy-night':'weather_icons\\cloudy.png'
 }
 
+data = {
+	'weather_temp':0,
+	'weather_icon':'weather_icons\\sun.png',
+	'kvantorium_events':'None'
+}
+
 #Функции
+
+def calc_percentage():
+	normal_width = 1920
+	normal_height = 1080
+	screen_width = main.winfo_screenwidth()
+	screen_height = main.winfo_screenheight()
+	percentage_width = screen_width / (normal_width / 100)
+	percentage_height = screen_height / (normal_height / 100)
+	scale_factor = ((percentage_width + percentage_height) / 2) / 100
+	return scale_factor
 
 #Получение данных
 def weather(token):
@@ -42,22 +60,36 @@ def img_parse(icon,w_lib=weather_icon_lib):
 
 #Апдейты
 def update():
-	time.config(text = dt.datetime.now().strftime("%H:%M:%S"))
-	day_mounth.config(text = dt.datetime.now().strftime("%d.%m.%Y"))
+	scale_factor = calc_percentage()
+	time.config(text = dt.datetime.now().strftime("%H:%M:%S"),font = 'Arial '+str(int(100 * scale_factor)))
+	day_mounth.config(text = dt.datetime.now().strftime("%d.%m.%Y"), font = 'Arial '+str(int(60 * scale_factor)))
 	main.after(200, update)
 
-def update_weather():
-	temp = weather(token).split()
-	weather_val.config(text=temp[0]+"°С")
-	f_weather_img.config(image=img_parse(temp[1]))
+def update_data(data,text):
+	scale_factor = calc_percentage()
+	weather_val.config(text=data['weather_temp']+"°С", font = 'Arial '+str(int(70 * scale_factor)))
+	f_weather_img.config(image=data['weather_icon'])
+
 	main.after(5*60*1000, update)
+
+def update_news():
+	site = parse('https://kvantorium-perm.ru/feed/')
+	text = []
+	for i in range(5):
+		text.append('end',site.entries[i].published[5:26] + "      " + site.entries[i].title)
 
 #Основная часть
 main = Tk()
 
 #Описание переменных
+normal_width = 1920
+normal_height = 1080
 screen_width = main.winfo_screenwidth()
 screen_height = main.winfo_screenheight()
+percentage_width = screen_width / (normal_width / 100)
+percentage_height = screen_height / (normal_height / 100)
+scale_factor = ((percentage_width + percentage_height) / 2) / 100
+
 token = '5450a4138a3e282e322f96a369ce7c30'
 
 
@@ -82,9 +114,9 @@ f_time = Frame(f_tw, bg = 'black',width=screen_width/10)
 
 f_de = Frame(f_top)
 #Дата
-f_date = Frame(f_de, bg = 'black')
-day_mounth = Label(f_weather_freespace, text="01.01.2002", fg='white', bg='black', font='Arial 65')
-f_events = Frame(f_de,bg = 'pink')
+day_mounth = Label(f_weather_freespace, text="01.01.2002", fg='white', bg='black', font='Arial '+str(round(90 * scale_factor)))
+
+f_kw_evetns = Frame(f_de, bg = 'grey', width = screen_width)
 
 f_bot = Frame(main,bg = 'yellow')
 f_news = Frame(f_bot,bg = 'orange')
@@ -93,11 +125,12 @@ f_news = Frame(f_bot,bg = 'orange')
 f_space = Frame(f_bot,bg = 'black')
 
 #Content
-time = Label(f_time,bg=f_weather['bg'],text=dt.datetime.now().strftime("%H:%M:%S"),fg='white',font='Arial 100')
+time = Label(f_time,bg=f_weather['bg'],text=dt.datetime.now().strftime("%H:%M:%S"),fg='white',font='Arial '+str(round(150 * scale_factor)))
 
-weather_val = Label(f_val_1,bg=f_weather['bg'], fg='white',font='Arial 65')
+weather_val = Label(f_val_1,bg=f_weather['bg'], fg='white',font='Arial '+str(round(70 * scale_factor)))
 f_weather_img = Label(f_val_2, image=img_parse('clear-day') ,bg='black')
 
+kw_evetns = Text(f_kw_evetns, height=0,width=0,font='Arial '+str(round(22 * scale_factor)),fg='white',bg='black', bd=0)
 
 #-------------------------------------------------------------------------------------------------Упаковка-----------------------------------------------------------------------------------------------
 #top
@@ -121,16 +154,34 @@ f_weather_img.place(relx=.5,rely=.5,anchor=CENTER)
 
 f_de.pack(expand=1,fill=BOTH)
 #date
-f_date.pack(side=LEFT,expand=1,fill=BOTH)
+#f_events.pack(side=LEFT,expand=1,fill=BOTH)
+kw_evetns.pack(expand=1,fill=BOTH)
+f_kw_evetns.pack(side=LEFT,expand=1,fill=BOTH)	
 day_mounth.place(relx=.5,rely=.5,anchor=CENTER)
 
-f_events.pack(side=LEFT,expand=1,fill=BOTH)
 
 f_bot.pack(expand=1,fill=BOTH)
 f_news.pack(side=LEFT,expand=1,fill=BOTH)
 f_space.pack(side=LEFT,expand=1,fill=BOTH)
 
 main.after(1000, update)
-main.after(5000, update_weather)
+main.after(5000, update_data)
+
+#-----------------------------------------------------------Подтяжка многопотока---------------------------------------------------------
+
+def calculate(data):
+	w = weather(token).split()
+	data['weather_temp'] = w[0]
+	data['weather_icon'] = img_parse(w[1])
+	t = update_news()
+	data['kvantorium_events'] = t
+	return data
+
+def draw(data):
+	main.after(200, update)
+	main.after(5000, update_data(data))
+
+calc = Thread(target=calculate,args=(data,200))
+draw = Thread(target=draw,args=(data,1000))
 
 main.mainloop()
