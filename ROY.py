@@ -81,6 +81,7 @@ def update_news(): #Получение хедлайнов с сайта кван
 
 #Основная часть
 main = Tk()
+main.config(cursor='none')
 
 #Описание переменных
 normal_width = 1920
@@ -119,7 +120,7 @@ day_mounth = Label(f_weather_freespace, text="01.01.2002", fg='white', bg='black
 f_kw_evetns = Frame(f_de, bg = 'grey', width = screen_width)
 
 f_bot = Frame(main,bg = 'black')
-f_news = Frame(f_bot,bg = 'orange',height=screen_height/3)
+f_news = Frame(f_bot,bg = 'black',height=screen_height/3)
 
 
 f_space = Frame(f_bot,bg = 'black')
