@@ -9,15 +9,15 @@ from time import sleep
 img = ""
 
 weather_icon_lib = {
-	'clear-day':'weather_icons\\sun.png',
-	'clear-night':'weather_icons\\sun.png',
-	'rain':'weather_icons\\rainy.png',
-	'snow':'weather_icons\\rainy.png',
-	'wind':'weather_icons\\cloudy.png',
-	'fog':'weather_icons\\cloudy.png',
-	'cloudy':'weather_icons\\cloudy.png',
-	'partly-cloudy-day':'weather_icons\\cloudy.png',
-	'partly-cloudy-night':'weather_icons\\cloudy.png'
+	'clear-day':'weather_icons/sun.png',
+	'clear-night':'weather_icons/sun.png',
+	'rain':'weather_icons/rainy.png',
+	'snow':'weather_icons/rainy.png',
+	'wind':'weather_icons/cloudy.png',
+	'fog':'weather_icons/cloudy.png',
+	'cloudy':'weather_icons/cloudy.png',
+	'partly-cloudy-day':'weather_icons/cloudy.png',
+	'partly-cloudy-night':'weather_icons/cloudy.png'
 }
 
 #Функции
